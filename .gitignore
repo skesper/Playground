@@ -1,0 +1,26 @@
+*/target
+
+cp.bat
+
+*.class
+
+target
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# LaTeX Files #
+.aux
+.log
+.pdf
+.synctex.gz
+.toc
+
+.idea
+*.iml
+/.project
+nb-configuration.xml
+faces-config.NavData
+persistence.xml
