@@ -93,22 +93,22 @@ public class Grid {
                 int here = maxx * y + x;
                 int neighbors =
                         f(grid[maxx * yminor + xminor]) +
-                                f(grid[maxx * yminor + x]) +
-                                f(grid[maxx * yminor + xmajor]) +
-                                f(grid[maxx * y + xminor]) +
-                                //grid[maxx*y+x]+
-                                f(grid[maxx * y + xmajor]) +
-                                f(grid[maxx * ymajor + xminor]) +
-                                f(grid[maxx * ymajor + x]) +
-                                f(grid[maxx * ymajor + xmajor]);
+                        f(grid[maxx * yminor + x]) +
+                        f(grid[maxx * yminor + xmajor]) +
+                        f(grid[maxx * y + xminor]) +
+                        f(grid[maxx * y + xmajor]) +
+                        f(grid[maxx * ymajor + xminor]) +
+                        f(grid[maxx * ymajor + x]) +
+                        f(grid[maxx * ymajor + xmajor]); // 8 neighbor cells.
+                // Conway rules.
                 if (grid[here] > 0) {
                     // alive
                     if (neighbors < 2) {
-                        tmp[here] = 0; // alleine
+                        tmp[here] = 0;
                     } else if (neighbors == 2 || neighbors == 3) {
                         tmp[here] = grid[here] + 1;
                     } else {
-                        tmp[here] = 0; // zuviele nachbarn.
+                        tmp[here] = 0;
                     }
                 } else {
                     // dead
@@ -124,6 +124,7 @@ public class Grid {
         tmp = t;
     }
 
+    // For debug purposes only. Do not print big grids!
     public void print() {
         for(int x = 0; x < maxx; ++x) {
             StringBuilder sb = new StringBuilder();
