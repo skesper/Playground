@@ -38,19 +38,21 @@ public class Grid {
         }
     }
 
-    public void randomizeBall() {
+    public synchronized void randomizeBall() {
         Arrays.fill(grid, 0);
-        int n = maxx*maxy;
+        int n = maxx*maxy/10;
         generation = 0;
         Random r = new Random();
         for(int i = 0; i < n; ++i) {
-            double phi = r.nextDouble()*2*Math.PI;
+            double phi = r.nextDouble()*Math.PI;
             double rr = r.nextDouble();
             double radx = maxx/2.;
             double rady = maxy/2.;
             int s = (int)(radx+rr*radx*Math.sin(phi));
+            int ss = (int)(radx-rr*radx*Math.sin(phi));
             int c = (int)(rady+rr*rady*Math.cos(phi));
             set(s,c);
+            set(ss,c);
         }
     }
 
