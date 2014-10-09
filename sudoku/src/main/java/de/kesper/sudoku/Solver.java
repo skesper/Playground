@@ -1,17 +1,22 @@
 package de.kesper.sudoku;
 
 /**
- * User: kesper
- * Date: 09.10.2014
- * Time: 08:55
+ * The Sudoku solver.
  */
 public class Solver implements Runnable {
     private Grid grid;
 
+    /**
+     * Creates a Solver for a specific problem.
+     * @param g The grid
+     */
     public Solver(Grid g) {
         grid = g;
     }
 
+    /**
+     * Starts the solution finding. Could be started in a Thread.
+     */
     @Override
     public void run() {
         System.out.println("Solving");
@@ -37,6 +42,15 @@ public class Solver implements Runnable {
         System.err.println("Not solvable");
     }
 
+    /**
+     * Defines a tentative value in a cell. That will also generate the whole subtree of decisions necessary
+     * for the solution.
+     * @param ii The row 0..8
+     * @param jj The column 0..8
+     * @param value The value
+     * @param depth The maximum search depth. If it is larger than 100, the algorithm breaks due to conceptual errors.
+     * @return true if the sudoku was successfully solved, false otherwise.
+     */
     private boolean tentative(int ii, int jj, int value, int depth) {
 
         if (depth>100) throw new RuntimeException("Search Depth too high. Algorithm is wrong.");
@@ -78,6 +92,11 @@ public class Solver implements Runnable {
         return false;
     }
 
+    /**
+     * Generates a "model" of the grid. In each cell this model contains the number of possible choices as value. But not
+     * the values them self.
+     * @return the model.
+     */
     private int[][] populateModel() {
         int[][] model = new int[9][9];
         for(int i=0;i<9;++i) {
@@ -98,6 +117,11 @@ public class Solver implements Runnable {
         return model;
     }
 
+    /**
+     * This is here just for runtime analysis. Exchange the call to {#findNextCell} by this method call, to have a
+     * brute force solution.
+     * @return the grid cell index, which is row*10+column.
+     */
     private int findNextCell_bruteforce() {
         // brute force
         for(int i=0;i<9;++i) {
@@ -108,6 +132,11 @@ public class Solver implements Runnable {
         return -1;
     }
 
+    /**
+     * This method finds the a cell with the minimum of options in the model. Hence the algorithm search options are
+     * reduced.
+     * @return the grid cell index, which is row*10+column.
+     */
     private int findNextCell() {
         // Find cell with minimum options
         int[][] model = populateModel();
