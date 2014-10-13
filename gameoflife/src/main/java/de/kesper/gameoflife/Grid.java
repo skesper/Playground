@@ -41,7 +41,15 @@ public class Grid {
     public synchronized void randomizeBall() {
         Arrays.fill(grid, 0);
         int n = maxx*maxy/10;
-        generation = 0;
+
+//        for(int i=0;i<maxy;++i) {
+//            set(maxx/2, i);
+//        }
+//        for(int i=0;i<maxx;++i) {
+//            set(i,maxy/2);
+//        }
+//        generation = 0;
+//        return;
         Random r = new Random();
         for(int i = 0; i < n; ++i) {
             double phi = r.nextDouble()*Math.PI;

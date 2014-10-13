@@ -152,5 +152,20 @@ public class Test {
 
         s = new Solver(g);
         s.run();
+
+        System.out.println("\n\nSudoku with maximum empty field.");
+        g = new Grid();
+        g.set(0,"006703500");
+        g.set(1,"000040000");
+        g.set(2,"500000002");
+        g.set(3,"900000007");
+        g.set(4,"030000040");
+        g.set(5,"800000001");
+        g.set(6,"100000004");
+        g.set(7,"000000000");
+        g.set(8,"059267310");
+
+        s = new Solver(g);
+        s.run();
     }
 }

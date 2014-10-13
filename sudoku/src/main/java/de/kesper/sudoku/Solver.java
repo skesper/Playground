@@ -39,7 +39,7 @@ public class Solver implements Runnable {
                 }
             }
         }
-        System.err.println("Not solvable");
+        System.out.println("Not solvable");
     }
 
     /**
