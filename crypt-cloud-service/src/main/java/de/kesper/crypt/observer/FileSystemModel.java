@@ -12,20 +12,34 @@ import java.util.HashMap;
  * Created by Stephan on 25.10.2014.
  */
 public class FileSystemModel {
-    private Path root;
-    private HashMap<String, Path> fileModel;
+    private final Path root;
+    private final HashMap<String, Path> fileModel;
+    private final HashMap<String, Path> directoryModel;
 
     public FileSystemModel(Path root) throws IOException {
         fileModel = new HashMap<>();
+        directoryModel = new HashMap<>();
         this.root = root;
-
         init();
+    }
+
+    public Path getRoot() {
+        return root;
+    }
+
+    public HashMap<String, Path> getFileModel() {
+        return fileModel;
+    }
+
+    public HashMap<String, Path> getDirectoryModel() {
+        return directoryModel;
     }
 
     private void init() throws IOException {
         Files.walkFileTree(root, new FileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                directoryModel.put(mangleFileName(dir), dir);
                 return FileVisitResult.CONTINUE;
             }
 
