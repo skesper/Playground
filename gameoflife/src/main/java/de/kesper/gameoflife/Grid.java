@@ -26,7 +26,7 @@ public class Grid {
         this.maxy = maxy;
         grid = new int[maxx * maxy];
         tmp = new int[maxx * maxy];
-        randomizeBall();
+        randomize();
     }
 
     public void randomize() {
@@ -61,6 +61,23 @@ public class Grid {
             int c = (int)(rady+rr*rady*Math.cos(phi));
             set(s,c);
             set(ss,c);
+        }
+    }
+
+
+    public synchronized void randomizeBall2() {
+        Arrays.fill(grid, 0);
+        int n = maxx*maxy/10;
+
+        Random r = new Random();
+        for(int i = 0; i < n; ++i) {
+            double phi = r.nextDouble()*Math.PI;
+            double rr = r.nextDouble();
+            double radx = maxx/2.;
+            double rady = maxy/2.;
+            int s = (int)(radx+rr*radx*Math.sin(phi));
+            int c = (int)(rady+rr*rady*Math.cos(phi));
+            set(s,c);
         }
     }
 

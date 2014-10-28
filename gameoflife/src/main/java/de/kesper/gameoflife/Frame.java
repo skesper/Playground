@@ -13,7 +13,7 @@ import java.awt.image.ImageObserver;
  * Date: 29.09.2014
  * Time: 12:07
  */
-public class Frame extends JFrame implements MouseListener, ComponentListener {
+public class Frame extends JFrame implements MouseListener, KeyListener, ComponentListener {
     protected javax.swing.JPanel drawPanel;
     private volatile Grid grid;
     private volatile long lastResized = Long.MAX_VALUE;
@@ -26,6 +26,7 @@ public class Frame extends JFrame implements MouseListener, ComponentListener {
         this.grid = grit;
         initComponents();
         drawPanel.addMouseListener(this);
+        this.addKeyListener(this);
         this.addComponentListener(this);
     }
 
@@ -168,6 +169,36 @@ public class Frame extends JFrame implements MouseListener, ComponentListener {
 
     @Override
     public void componentHidden(ComponentEvent e) {
+
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        char typed = e.getKeyChar();
+
+        switch(typed) {
+            case 'r': {
+                grid.randomize();
+            }break;
+
+            case 'b': {
+                grid.randomizeBall();
+            }break;
+
+            case 'n': {
+                grid.randomizeBall2();
+            }break;
+
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
 
     }
 }

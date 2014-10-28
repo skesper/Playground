@@ -136,7 +136,11 @@ public class Test {
         g.set(8,"000010000");
 
         s = new Solver(g);
+        s.setFirstSolutionOnly(false);
+        s.setQuiet(true);
         s.run();
+        g.print();
+        System.out.println("Found "+s.getSolutions()+" solutions.");
 
         System.out.println("\n\nempty sudoku.");
         g = new Grid();

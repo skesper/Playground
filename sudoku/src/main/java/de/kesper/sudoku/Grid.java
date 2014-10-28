@@ -34,6 +34,14 @@ public class Grid {
     }
 
     /**
+     * Copy-Constructor
+     * @param g
+     */
+    public Grid(Grid g) {
+        grid = Arrays.copyOf(g.grid, g.grid.length);
+    }
+
+    /**
      * Determines whether the whole grid is filled with numbers other than 0.
      * @return true if no 0 is in the grid, false otherwise.
      */

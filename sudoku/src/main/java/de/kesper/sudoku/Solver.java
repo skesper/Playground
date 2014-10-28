@@ -5,13 +5,43 @@ package de.kesper.sudoku;
  */
 public class Solver implements Runnable {
     private Grid grid;
+    private Grid solution;
+
+    private boolean firstSolutionOnly = true;
+    private int solutions = 0;
+    private boolean quiet = false;
+
 
     /**
      * Creates a Solver for a specific problem.
      * @param g The grid
      */
     public Solver(Grid g) {
-        grid = g;
+        grid = new Grid(g);
+    }
+
+    public boolean isFirstSolutionOnly() {
+        return firstSolutionOnly;
+    }
+
+    public void setFirstSolutionOnly(boolean firstSolutionOnly) {
+        this.firstSolutionOnly = firstSolutionOnly;
+    }
+
+    public boolean isQuiet() {
+        return quiet;
+    }
+
+    public Grid getSolution() {
+        return solution;
+    }
+
+    public void setQuiet(boolean quiet) {
+        this.quiet = quiet;
+    }
+
+    public int getSolutions() {
+        return solutions;
     }
 
     /**
@@ -19,8 +49,10 @@ public class Solver implements Runnable {
      */
     @Override
     public void run() {
-        System.out.println("Solving");
-        grid.print();
+        if (!quiet) {
+            System.out.println("Solving");
+            grid.print();
+        }
 
         long start = System.currentTimeMillis();
         int min = findNextCell();
@@ -34,12 +66,16 @@ public class Solver implements Runnable {
                 boolean result = tentative(iii,jjj,k, 0);
                 if (result) {
                     long end = System.currentTimeMillis();
-                    System.out.println("Solved in "+((end-start)/1000.)+" sec.");
+                    if (!quiet) {
+                        System.out.println("Solved in " + ((end - start) / 1000.) + " sec.");
+                    }
                     return;
                 }
             }
         }
-        System.out.println("Not solvable");
+        if (!quiet) {
+            System.out.println("Not solvable");
+        }
     }
 
     /**
@@ -62,12 +98,21 @@ public class Solver implements Runnable {
         // find cell with minimal options
         int minOpt = findNextCell();
         if (minOpt<0) {
-            grid.print();
+            if (!quiet) {
+                grid.print();
+            }
+
             if (grid.isFilled()) {
-                System.out.println("Success.");
+                if (!quiet) {
+                    System.out.println("Success.");
+                }
+                solution = new Grid(grid);
+                solutions++;
                 return true;
             }
-            System.out.println("Subtree unsuccessful.");
+            if (!quiet) {
+                System.out.println("Subtree unsuccessful.");
+            }
             return false;
         }
 
@@ -80,7 +125,7 @@ public class Solver implements Runnable {
             boolean contained = grid.blockContains(block, k) | grid.rowContains(iii, k) | grid.colContains(jjj, k);
             if (!contained) {
                 boolean result = tentative(iii,jjj,k, depth+1);
-                if (result) {
+                if (result && firstSolutionOnly) {
                     return true;
                 }
             }

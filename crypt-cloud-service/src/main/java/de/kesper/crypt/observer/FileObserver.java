@@ -1,76 +1,130 @@
 package de.kesper.crypt.observer;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Created by Stephan on 25.10.2014.
  */
-public class FileObserver implements Runnable {
-    private Path cloudDir;
-    private Path localDir;
+public class FileObserver {
 
-    public FileObserver(Path cloudDir, Path localDir) {
-        this.cloudDir = cloudDir;
-        this.localDir = localDir;
+    private FileSystemModel source;
+    private FileSystemModel target;
+
+    private WatchService sourceService;
+    private WatchService targetService;
+
+    private Thread sourceThread;
+    private Thread targetThread;
+
+    private FileSystemEventHandler handler;
+
+    public FileObserver(FileSystemModel source, FileSystemModel target, FileSystemEventHandler handler) throws IOException {
+        this.source = source;
+        this.target = target;
+        this.handler = handler;
+
+        FileSystem sfs = source.getRoot().getFileSystem();
+        FileSystem tfs = target.getRoot().getFileSystem();
+
+        sourceService = sfs.newWatchService();
+        if (sfs.equals(tfs)) {
+            targetService = sourceService;
+        } else {
+            targetService = tfs.newWatchService();
+        }
+
+        source.addWatchService(sourceService);
+        target.addWatchService(targetService);
     }
 
-    @Override
-    public void run() {
-        try {
-            Files.walkFileTree(cloudDir, new SyncFileVisitor(localDir));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void startObservation() {
+        sourceThread = new Thread(new WatchServiceHandler(sourceService, source, handler));
+        sourceThread.setDaemon(true);
+        sourceThread.start();
+
+        targetThread = new Thread(new WatchServiceHandler(targetService, target, handler));
+        targetThread.setDaemon(true);
+        targetThread.start();
     }
 
-    private class SyncFileVisitor implements FileVisitor<Path> {
-        private Path local;
-        public SyncFileVisitor(Path local) {
-            this.local = local;
+    private class WatchServiceHandler implements Runnable {
+        private final WatchService service;
+        private final FileSystemModel model;
+        private final FileSystemEventHandler handler;
+
+        public WatchServiceHandler(WatchService service, FileSystemModel model, FileSystemEventHandler handler) {
+            this.service = service;
+            this.handler = handler;
+            this.model = model;
         }
 
         @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            System.out.println("entering "+dir);
-            return FileVisitResult.CONTINUE;
+        public void run() {
+            while(true) {
+                WatchKey watchKey;
+                try {
+                    watchKey = service.take();
+                } catch(InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                if (watchKey!=null) {
+                    for(WatchEvent<?> p : watchKey.pollEvents()) {
+                        System.out.println(p.context() + " -> " + p.kind());
+                        Path path = (Path)p.context();
+                        if (watchKey.watchable() instanceof Path) {
+                            System.out.println("DEBUG: watchKey.watchable = " + watchKey.watchable());
+                        }
+
+                        Path modifiedItem = Paths.get(watchKey.watchable().toString(), path.toString());
+                        System.out.println("DEBUG: modifiedItem = "+modifiedItem);
+
+                        if (Files.isDirectory(modifiedItem)) {
+                            if (p.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+                                model.addDirectory(modifiedItem);
+                                try {
+                                    modifiedItem.register(service);
+                                } catch(IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                            handler.handleDirectory(model, modifiedItem, toType(p.kind()));
+                        } else if (Files.isRegularFile(modifiedItem)) {
+                            handler.handleFile(model, modifiedItem, toType(p.kind()));
+                        } else {
+                            if (Files.exists(modifiedItem)) {
+                                System.err.println("Could not handle: " + modifiedItem.toAbsolutePath().toString());
+                                try {
+                                    BasicFileAttributes bfa = Files.readAttributes(modifiedItem.toAbsolutePath(), BasicFileAttributes.class);
+                                    System.out.println("    is regular " + bfa.isRegularFile());
+                                    System.out.println("    is directory " + bfa.isDirectory());
+                                    System.out.println("    is other " + bfa.isOther());
+                                    System.out.println("    is link " + bfa.isSymbolicLink());
+
+                                } catch(IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } // else the file does not exist, which is may be because it was renamed or moved.
+                        }
+                    }
+                    watchKey.reset();
+                }
+            }
         }
 
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            System.out.println("visiting "+file);
-
-            /*
-
-            cases:
-
-            1. File existiert lokal, aber nicht in cloud.
-                verschlüsseln und in die cloud kopieren.
-            2. File existiert nicht lokal, aber in der cloud.
-                entschlüsseln und von cloud nach lokal kopieren.
-            3. File existiert in beiden Verzeichnissen, aber der Zeitstempel lokal ist neuer, als der der Cloud
-                verschlüsseln und in die cloud kopieren
-            4. w.o., nur Zeitstempel cloud ist neuer
-                entschlüsseln und von der cloud nach lokal kopieren.
-
-             */
-
-
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-            return FileVisitResult.CONTINUE;
+        private FileSystemEventType toType(WatchEvent.Kind<?> kind) {
+            if (kind==StandardWatchEventKinds.ENTRY_CREATE) {
+                return FileSystemEventType.CREATE;
+            }
+            if (kind==StandardWatchEventKinds.ENTRY_DELETE) {
+                return FileSystemEventType.DELETE;
+            }
+            if (kind==StandardWatchEventKinds.ENTRY_MODIFY) {
+                return FileSystemEventType.MODIFY;
+            }
+            throw new RuntimeException("Unknown type of WatchEvent: "+kind);
         }
     }
 }
