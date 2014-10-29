@@ -79,6 +79,14 @@ public class Grid {
         }
     }
 
+    public void set(String s) {
+        if (s==null || s.length()!=81) throw new RuntimeException("invalid argument: "+s);
+
+        for(int i=1;i<=9;++i) {
+            set(i-1, s.substring((i-1)*9, i*9));
+        }
+    }
+
     /**
      * Retrieves the value of the cell. If this method returns a 0 (zero) value, the
      * cell is empty.
@@ -141,6 +149,21 @@ public class Grid {
             if (grid[i*9+col] == value) return true;
         }
         return false;
+    }
+
+    public String toIndexString() {
+        StringBuilder sb = new StringBuilder();
+        for(int i=0;i<9;++i) {
+            for(int j=0;j<9;++j) {
+                int v = get(i,j);
+                if (v>0) {
+                    sb.append(v);
+                } else {
+                    sb.append("0");
+                }
+            }
+        }
+        return sb.toString();
     }
 
     /**

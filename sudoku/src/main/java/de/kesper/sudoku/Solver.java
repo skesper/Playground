@@ -1,11 +1,15 @@
 package de.kesper.sudoku;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The Sudoku solver.
  */
 public class Solver implements Runnable {
     private Grid grid;
     private Grid solution;
+    private List<String> solutionIndex = new ArrayList<>();
 
     private boolean firstSolutionOnly = true;
     private int solutions = 0;
@@ -42,6 +46,10 @@ public class Solver implements Runnable {
 
     public int getSolutions() {
         return solutions;
+    }
+
+    public List<String> getSolutionIndex() {
+        return solutionIndex;
     }
 
     /**
@@ -108,6 +116,7 @@ public class Solver implements Runnable {
                 }
                 solution = new Grid(grid);
                 solutions++;
+                solutionIndex.add(solution.toIndexString());
                 return true;
             }
             if (!quiet) {

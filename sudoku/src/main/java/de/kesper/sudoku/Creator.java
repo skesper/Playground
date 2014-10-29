@@ -1,5 +1,8 @@
 package de.kesper.sudoku;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Random;
 
 /**
@@ -9,37 +12,75 @@ import java.util.Random;
  */
 public class Creator {
 
-    private int numberOfClues;
-
     public Grid createUniqueSudoku(int numberOfClues) {
-        this.numberOfClues = numberOfClues;
+
+        Clock clock = Clock.systemDefaultZone();
 
         int cnt = 0;
         while(true) {
-            Grid g = createSudoku();
+            Grid g = createSudoku(numberOfClues);
 //            System.out.println("candidate:");
 //            g.print();
             Solver s = new Solver(g);
             s.setFirstSolutionOnly(false);
             s.setQuiet(true);
 
+            Instant start = clock.instant();
             s.run();
+            Instant end = clock.instant();
+            Duration duration = Duration.between(start, end);
+
             if (s.getSolutions()==1) {
-                System.out.println("\n\nUnique solution:");
+                System.out.println("\n\nUnique solution: "+duration);
                 g.print();
                 s.getSolution().print();
+                System.out.println(g.toIndexString());
                 return g;
             }
-            System.out.print("["+s.getSolutions()+"] ");
+            System.out.println(String.format("%d [%2d] %s %s", cnt, s.getSolutions(), g.toIndexString(), duration.toString()));
             cnt++;
-            if (cnt%40==0) {
-                System.out.println("");
-            }
-
         }
     }
 
-    private Grid createSudoku() {
+    private Solver createAnySudoku(int numberOfClues) {
+        Grid g = new Grid();
+
+        Random r = new Random();
+
+        while(true) {
+            int cnt = 0;
+
+            while(true) {
+                if (cnt >= numberOfClues) break;
+
+                int row = r.nextInt(9);
+                int col = r.nextInt(9);
+                int val = r.nextInt(9) + 1;
+
+                if (g.isSet(row, col)) continue;
+
+                int row3 = row / 3;
+                int block = row3 * 3 + col / 3;
+
+                boolean contained = g.colContains(col, val) | g.blockContains(block, val) | g.rowContains(row, val);
+                if (!contained) {
+                    g.set(row, col, val);
+                    cnt++;
+                }
+            }
+
+            Solver s = new Solver(g);
+            s.setFirstSolutionOnly(false);
+            s.setQuiet(true);
+            s.run();
+            if (s.getSolutions()>0) {
+                return s;
+            }
+        }
+    }
+
+
+    private Grid createSudoku(int numberOfClues) {
 
         Grid g = new Grid();
 
@@ -71,6 +112,12 @@ public class Creator {
     public static void main(String[] args) throws Exception {
         Creator c = new Creator();
 
-        Grid g = c.createUniqueSudoku(22);
+        Solver s = c.createAnySudoku(18);
+
+        System.out.println("Solutions: "+s.getSolutions());
+        for(String index : s.getSolutionIndex()) {
+            System.out.println("  "+index);
+        }
+
     }
 }
