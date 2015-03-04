@@ -54,5 +54,20 @@ public class SpiegelSudoku {
 
         s = new Solver(g);
         s.run();
+
+
+        g = new Grid();
+        g.set(0,"001300000");
+        g.set(1,"369000002");
+        g.set(2,"807010000");
+        g.set(3,"000079000");
+        g.set(4,"900060005");
+        g.set(5,"020058094");
+        g.set(6,"000600708");
+        g.set(7,"000000160");
+        g.set(8,"030784000");
+
+        s = new Solver(g);
+        s.run();
     }
 }

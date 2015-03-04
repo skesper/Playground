@@ -87,7 +87,9 @@ public class LatexGenerator implements Runnable, AutoCloseable {
                     }
                 } else {
                     paragraph = paragraph.replace("==", "");
-                    if (useSectionNumbers) {
+                    if (paragraph.contains("***")) {
+                        return "\\begin{center}\n***\n\\end{center}\n\n";
+                    } else if (useSectionNumbers) {
                         return "\\section{".concat(paragraph.trim()).concat("}\n\n");
                     } else {
                         return "\\section*{".concat(paragraph.trim()).concat("}\n\n");
@@ -101,6 +103,16 @@ public class LatexGenerator implements Runnable, AutoCloseable {
                     return "\\chapter*{".concat(paragraph.trim()).concat("}\n\n");
                 }
             }
+        } else if (paragraph.startsWith("TODO:")) {
+            StringBuilder code = new StringBuilder();
+            code.append("\\begin{quote}\n");
+            code.append("\\footnotesize \n");
+            code.append("\\color{blue}\n");
+            code.append("\\textsl{ \n");
+            code.append(paragraph);
+            code.append("}\n");
+            code.append("\\end{quote}\n\n");
+            return code.toString();
         }
 
         if (hasBoldOrItalics(paragraph)) {
@@ -182,11 +194,12 @@ public class LatexGenerator implements Runnable, AutoCloseable {
 
 
 
-    private static final String preamble = "\\documentclass[11pt,a5paper,final,openright]{memoir}\n" +
+    private static final String preamble = "\\documentclass[10pt,a5paper,final,openright]{memoir}\n" +
             "\\usepackage[ngerman]{babel}\n" +
             "\\usepackage[T1]{fontenc}\n" +
             "\\usepackage[utf8]{inputenc}\n" +
             "\\usepackage{graphicx}\n" +
+            "\\usepackage{color}\n" +
             "\n" +
             "% Werte nach http://www.boooks.org/\n" +
             "\\usepackage[a5paper]{geometry}\n" +
