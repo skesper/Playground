@@ -75,6 +75,8 @@ public class LatexGenerator implements Runnable, AutoCloseable {
         paragraph = paragraph.replace("%","\\%");
         paragraph = paragraph.replace("\"'\"`","\"'\n\n\"`");
 
+        paragraph = sanitizeSpeech(paragraph);
+
 
         if (paragraph.startsWith("=")) {
             if (paragraph.startsWith("==")) {
@@ -121,6 +123,33 @@ public class LatexGenerator implements Runnable, AutoCloseable {
 
 
         return paragraph.concat("\n");
+    }
+
+    private String sanitizeSpeech(String paragraph) {
+        if (paragraph==null) return null;
+        String[] spl = paragraph.split("\"'");
+        if (spl==null || spl.length<2) return paragraph;
+
+        StringBuilder p = new StringBuilder();
+        p.append(spl[0]);
+        for(int i=1;i<spl.length;++i) {
+            char first = spl[i].charAt(0);
+            if (Character.isAlphabetic(first) || Character.isDigit(first)) {
+                p.append("\"' \\ \\ ");
+            } else {
+                p.append("\"'");
+            }
+            p.append(spl[i]);
+        }
+        if (spl[spl.length-1].equals("")) {
+            p.append("\"'");
+        }
+
+        if (paragraph.endsWith("\"'")) {
+            p.append("\"'");
+        }
+
+        return p.toString();
     }
 
     private String replaceBoldOrItalics(String paragraph) {
