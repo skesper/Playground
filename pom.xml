@@ -14,5 +14,6 @@
         <module>gameoflife</module>
         <module>sudoku</module>
         <module>ml-formatter</module>
+        <module>linear-algebra</module>
     </modules>
 </project>
